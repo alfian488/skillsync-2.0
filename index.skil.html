@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillSync AI 2.0 Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        
+        /* Custom Scrollbar untuk sidebar & konten utama */
+        .custom-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        
+        /* Utility untuk donut chart SVG */
+        .circular-chart { display: block; margin: 0 auto; max-width: 80%; max-height: 250px; }
+        .circle-bg { fill: none; stroke: #f1f5f9; stroke-width: 3.5; }
+        .circle { fill: none; stroke-width: 3.5; stroke-linecap: round; }
+        
+        /* Animasi transisi tab */
+        .tab-content { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-gray-800">
+
+    <aside class="w-64 bg-[#0e1628] text-white flex flex-col h-full flex-shrink-0 z-20 relative shadow-xl">
+        <div class="px-6 py-6 flex items-center gap-3">
+            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-lg rotate-45"><span class="-rotate-45">S</span></div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight">SkillSync AI <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-blue-300 ml-1">2.0</span></h1>
+                <p class="text-[10px] text-gray-400">AI Career Simulation</p>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto px-4 space-y-1 mt-2 sidebar-scroll text-sm font-medium">
+            <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item flex items-center gap-3 px-3 py-2.5 bg-blue-600 text-white rounded-xl transition-colors">
+                <i class="fa-solid fa-house w-5 text-center"></i> Dashboard
+            </a>
+            <a href="#" onclick="switchTab('career')" id="nav-career" class="nav-item flex items-center gap-3 px-3 py-2.5 text-gray-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors">
+                <i class="fa-solid fa-compass w-5 text-center"></i> Career Simulation
+            </a>
+            <a href="#" onclick="switchTab('skill')" id="nav-skill" class="nav-item flex items-center gap-3 px-3 py-2.5 text-gray-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors">
+                <i class="fa-solid fa-network-wired w-5 text-center"></i> Skill Graph
+            </a>
+            <a href="#" onclick="switchTab('whatif')" id="nav-whatif" class="nav-item flex items-center gap-3 px-3 py-2.5 text-gray-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors">
+                <i class="fa-solid fa-code-branch w-5 text-center"></i> What If Engine
+            </a>
+            <a href="#" onclick="switchTab('investment')" id="nav-investment" class="nav-item flex items-center gap-3 px-3 py-2.5 text-gray-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors">
+                <i class="fa-solid fa-bullseye w-5 text-center"></i> Skill Investment
+            </a>
+            <a href="#" onclick="switchTab('radar')" id="nav-radar" class="nav-item flex items-center gap-3 px-3 py-2.5 text-gray-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors">
+                <i class="fa-solid fa-radar w-5 text-center"></i> Opportunity Radar
+            </a>
+            <a href="#" onclick="switchTab('progress')" id="nav-progress" class="nav-item flex items-center gap-3 px-3 py-2.5 text-gray-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors">
+                <i class="fa-solid fa-chart-simple w-5 text-center"></i> Progress & Learning
+            </a>
+            <a href="#" onclick="switchTab('mentor')" id="nav-mentor" class="nav-item flex items-center gap-3 px-3 py-2.5 text-gray-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors">
+                <i class="fa-solid fa-robot w-5 text-center"></i> AI Mentor
+            </a>
+            <a href="#" onclick="switchTab('settings')" id="nav-settings" class="nav-item flex items-center gap-3 px-3 py-2.5 text-gray-400 hover:text-white hover:bg-slate-800 rounded-xl mt-4 transition-colors">
+                <i class="fa-solid fa-gear w-5 text-center"></i> Settings
+            </a>
+        </nav>
+
+        <div class="px-4 mb-4 mt-4">
+            <div class="bg-[#1e293b] rounded-2xl p-4 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 w-16 h-16 bg-blue-500/20 rounded-full blur-xl"></div>
+                <h4 class="font-bold text-sm mb-2 text-white relative z-10">AI Career Assistant</h4>
+                <p class="text-[11px] text-gray-400 mb-4 leading-relaxed relative z-10">Hai! Saya siap membantu kamu merencanakan masa depan kariermu.</p>
+                <button onclick="switchTab('mentor')" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 rounded-lg transition-colors flex justify-center items-center gap-2 relative z-10">
+                    <i class="fa-solid fa-comment-dots"></i> Chat dengan AI
+                </button>
+            </div>
+        </div>
+
+        <div class="px-4 py-4 border-t border-slate-800 flex items-center justify-between cursor-pointer hover:bg-slate-800/50 transition-colors">
+            <div class="flex items-center gap-3">
+                <img src="https://i.pravatar.cc/150?img=5" alt="Alya Putri" class="w-10 h-10 rounded-full border border-slate-600">
+                <div>
+                    <p class="text-sm font-bold">Alya Putri</p>
+                    <p class="text-[10px] text-yellow-500 flex items-center gap-1">Premium Plan <i class="fa-solid fa-crown text-[8px]"></i></p>
+                </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-xs text-gray-500"></i>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto p-8 relative custom-scroll h-full">
+        
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h2 id="page-title" class="text-2xl font-bold text-slate-800">Hi, Atta! 👋</h2>
+                <p id="page-subtitle" class="text-sm text-gray-500 mt-1">"Rencanakan hari ini, simulasi masa depanmu, dan ambil keputusan terbaik."</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="relative w-64">
+                    <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input type="text" placeholder="Search anything..." class="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all">
+                </div>
+                <button class="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 relative">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                </button>
+            </div>
+        </header>
+
+        <div id="tab-dashboard" class="tab-content block">
+            <div class="grid grid-cols-4 gap-4 mb-6">
+                <div class="bg-white p-4 rounded-2xl border border-gray-100 flex items-center gap-4 shadow-sm hover:shadow-md transition cursor-pointer" onclick="switchTab('career')">
+                    <div class="w-12 h-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-bullseye"></i></div>
+                    <div>
+                        <p class="text-xs text-gray-500">Career Fit Score</p>
+                        <h3 class="text-xl font-bold text-slate-800">85%</h3>
+                        <p class="text-[10px] text-green-500 font-medium mt-0.5">Sangat Baik</p>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-gray-100 flex items-center gap-4 shadow-sm hover:shadow-md transition cursor-pointer" onclick="switchTab('skill')">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                    <div>
+                        <p class="text-xs text-gray-500">Top Skill Match</p>
+                        <h3 class="text-xl font-bold text-slate-800">12</h3>
+                        <p class="text-[10px] text-gray-500 mt-0.5">Skill Relevan</p>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-gray-100 flex items-center gap-4 shadow-sm hover:shadow-md transition cursor-pointer" onclick="switchTab('investment')">
+                    <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-chart-line"></i></div>
+                    <div>
+                        <p class="text-xs text-gray-500">Investment Score</p>
+                        <div class="flex items-baseline gap-1"><h3 class="text-xl font-bold text-slate-800">87</h3><span class="text-xs text-gray-400 font-medium">/100</span></div>
+                        <p class="text-[10px] text-emerald-500 font-medium mt-0.5">High ROI</p>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-gray-100 flex items-center gap-4 shadow-sm hover:shadow-md transition cursor-pointer" onclick="switchTab('progress')">
+                    <div class="w-12 h-12 rounded-full bg-orange-100 text-orange-500 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                    <div>
+                        <p class="text-xs text-gray-500">Risk of Failure</p>
+                        <h3 class="text-xl font-bold text-slate-800">28%</h3>
+                        <p class="text-[10px] text-gray-500 mt-0.5">Rendah</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-4 gap-6 pb-8">
+                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-between cursor-pointer hover:shadow-md transition" onclick="switchTab('whatif')">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-1">What If Engine <i class="fa-regular fa-circle-question text-gray-400 text-[10px]"></i></h3>
+                        <p class="text-[10px] text-gray-500 mb-4">Simulasikan perubahan karier secara instan.</p>
+                        <div class="relative mb-3">
+                            <select class="w-full appearance-none bg-gray-50 border border-gray-200 text-gray-700 text-[11px] py-2.5 px-3 rounded-lg pointer-events-none font-medium">
+                                <option>What if saya beralih ke UI/UX Designer?</option>
+                            </select>
+                            <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-[10px]"></i>
+                        </div>
+                        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold py-2 rounded-lg transition-colors mb-4">Jalankan Simulasi</button>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-gray-700 mb-2">Hasil Simulasi Singkat</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="flex items-center gap-2"><i class="fa-regular fa-clock text-blue-500 text-sm"></i><div><p class="text-[8px] text-gray-500">Waktu Belajar</p><p class="text-[10px] font-bold text-slate-800">6-8 Bulan</p></div></div>
+                            <div class="flex items-center gap-2"><i class="fa-regular fa-circle-check text-emerald-500 text-sm"></i><div><p class="text-[8px] text-gray-500">Peluang Sukses</p><p class="text-[10px] font-bold text-slate-800">68%</p></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-between cursor-pointer hover:shadow-md transition" onclick="switchTab('radar')">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-1">Opportunity Radar <i class="fa-regular fa-circle-question text-gray-400 text-[10px]"></i></h3>
+                        <p class="text-[10px] text-gray-500 mb-4">Peluang karier yang sedang naik daun.</p>
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-2">
+                                <i class="fa-solid fa-caret-up text-emerald-500 text-sm mt-0.5"></i>
+                                <div><h4 class="text-[11px] font-bold text-gray-800">AI Prompt Engineer</h4><p class="text-[9px] text-emerald-600 font-medium">🔥 Popularitas naik 320%</p></div>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <i class="fa-solid fa-caret-up text-yellow-500 text-sm mt-0.5"></i>
+                                <div><h4 class="text-[11px] font-bold text-gray-800">Sustainability Analyst</h4><p class="text-[9px] text-yellow-600 font-medium">🔥 Popularitas naik 180%</p></div>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <i class="fa-solid fa-caret-up text-red-400 text-sm mt-0.5"></i>
+                                <div><h4 class="text-[11px] font-bold text-gray-800">Data Engineer</h4><p class="text-[9px] text-red-500 font-medium">🔥 Popularitas naik 150%</p></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-center"><span class="text-blue-600 text-[10px] font-bold hover:underline">Lihat Semua Peluang <i class="fa-solid fa-arrow-right ml-1"></i></span></div>
+                </div>
+
+                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-between cursor-pointer hover:shadow-md transition" onclick="switchTab('progress')">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-1">Failure Prediction <i class="fa-regular fa-circle-question text-gray-400 text-[10px]"></i></h3>
+                        <p class="text-[10px] text-gray-500 mb-4">Prediksi risiko berdasarkan data perilaku.</p>
+                        <div class="flex items-center gap-4">
+                            <div class="relative w-24 h-24 shrink-0">
+                                <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+                                    <path class="circle-bg" stroke="#f1f5f9" stroke-width="3" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                    <path class="circle stroke-emerald-500" stroke-width="3" stroke-dasharray="28, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                </svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span class="text-xl font-bold text-slate-800">28%</span>
+                                    <span class="text-[8px] text-emerald-500 font-bold">Risiko Rendah</span>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-[10px] font-bold text-gray-700 mb-2">Faktor Risiko</p>
+                                <ul class="space-y-1.5 text-[9px]">
+                                    <li class="flex items-start gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 mt-0.5 shrink-0"></span><span class="text-gray-600">Konsistensi Belajar <span class="block text-gray-400">Rendah</span></span></li>
+                                    <li class="flex items-start gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 mt-0.5 shrink-0"></span><span class="text-gray-600">Pengalaman <span class="block text-gray-400">Rendah</span></span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-between cursor-pointer hover:shadow-md transition" onclick="switchTab('investment')">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2 mb-1">Market Insights <i class="fa-regular fa-circle-question text-gray-400 text-[10px]"></i></h3>
+                        <p class="text-[10px] text-gray-500 mb-4">Skill Demand (30 Hari Terakhir)</p>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-2 text-[9px]">
+                                <span class="w-20 truncate text-gray-600">Python</span>
+                                <div class="flex-1 bg-gray-100 h-1.5 rounded-full"><div class="bg-indigo-500 h-1.5 rounded-full" style="width: 95%"></div></div>
+                            </div>
+                            <div class="flex items-center gap-2 text-[9px]">
+                                <span class="w-20 truncate text-gray-600">Machine Learning</span>
+                                <div class="flex-1 bg-gray-100 h-1.5 rounded-full"><div class="bg-indigo-500 h-1.5 rounded-full" style="width: 88%"></div></div>
+                            </div>
+                            <div class="flex items-center gap-2 text-[9px]">
+                                <span class="w-20 truncate text-gray-600">Data Analysis</span>
+                                <div class="flex-1 bg-gray-100 h-1.5 rounded-full"><div class="bg-emerald-400 h-1.5 rounded-full" style="width: 75%"></div></div>
+                            </div>
+                            <div class="flex items-center gap-2 text-[9px]">
+                                <span class="w-20 truncate text-gray-600">UI/UX Design</span>
+                                <div class="flex-1 bg-gray-100 h-1.5 rounded-full"><div class="bg-emerald-400 h-1.5 rounded-full" style="width: 65%"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-center"><span class="text-blue-600 text-[10px] font-bold hover:underline">Lihat Heatmap Pasar <i class="fa-solid fa-arrow-right ml-1"></i></span></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-career" class="tab-content hidden">
+            <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm w-full max-w-5xl">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">Career Simulation (Digital Twin)</h3>
+                        <p class="text-sm text-gray-500 mt-1">Simulasi 5 tahun ke depan berdasarkan data, skill, dan preferensimu.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-8">
+                    <div class="border border-purple-200 bg-purple-50/50 rounded-2xl p-6 flex gap-8 items-center">
+                        <div class="w-40 shrink-0 text-center px-4 py-6 border border-purple-200 bg-white rounded-xl shadow-sm">
+                            <p class="text-xs font-bold text-purple-800 mb-2">Scenario A</p>
+                            <h4 class="text-lg font-bold text-purple-600 mb-3 leading-tight">AI Engineer</h4>
+                            <span class="text-[11px] bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium">High Growth</span>
+                        </div>
+                        <div class="flex-1">
+                            <div class="relative pt-6 pb-4">
+                                <div class="absolute top-[40px] left-10 right-10 h-1.5 bg-purple-200 rounded"></div>
+                                <div class="flex justify-between relative z-10 text-center">
+                                    <div class="relative"><p class="text-xs text-gray-500 absolute -top-7 left-1/2 -translate-x-1/2 w-max">Sekarang</p><div class="w-4 h-4 bg-purple-500 rounded-full mx-auto border-2 border-white shadow-md"></div><div class="mt-3 text-xs leading-tight"><p class="font-bold text-gray-800">Jr. Developer</p><p class="text-gray-500 mt-1">Rp 7 jt/bln</p></div></div>
+                                    <div class="relative"><p class="text-xs text-gray-500 absolute -top-7 left-1/2 -translate-x-1/2 w-max">1 Tahun</p><div class="w-4 h-4 bg-purple-500 rounded-full mx-auto border-2 border-white shadow-md"></div><div class="mt-3 text-xs leading-tight"><p class="font-bold text-gray-800">AI Engineer</p><p class="text-gray-500 mt-1">Rp 12 jt/bln</p></div></div>
+                                    <div class="relative"><p class="text-xs text-gray-500 absolute -top-7 left-1/2 -translate-x-1/2 w-max">2 Tahun</p><div class="w-5 h-5 bg-purple-600 rounded-full mx-auto border-2 border-white shadow-md -mt-0.5 relative"><span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-yellow-400 rounded-full border border-white"></span></div><div class="mt-2 text-xs leading-tight"><p class="font-bold text-gray-800">Sr. AI Engineer</p><p class="text-gray-500 mt-1">Rp 18 jt/bln</p></div></div>
+                                    <div class="relative"><p class="text-xs text-gray-500 absolute -top-7 left-1/2 -translate-x-1/2 w-max">3 Tahun</p><div class="w-4 h-4 bg-purple-500 rounded-full mx-auto border-2 border-white shadow-md"></div><div class="mt-3 text-xs leading-tight"><p class="font-bold text-gray-800">Tech Lead</p><p class="text-gray-500 mt-1">Rp 25 jt/bln</p></div></div>
+                                    <div class="relative"><p class="text-xs text-gray-500 absolute -top-7 left-1/2 -translate-x-1/2 w-max">5 Tahun</p><div class="w-4 h-4 bg-purple-500 rounded-full mx-auto border-2 border-white shadow-md"></div><div class="mt-3 text-xs leading-tight"><p class="font-bold text-gray-800">Head of AI</p><p class="text-gray-500 mt-1">Rp 45 jt/bln</p></div></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-around items-center border-t border-purple-200 pt-4 mt-2">
+                                <div class="flex items-center gap-3"><i class="fa-solid fa-sack-dollar text-purple-500 text-lg"></i><div><p class="text-[10px] text-gray-500">Potensi Gaji 5 Thn</p><p class="text-sm font-bold text-gray-800">Rp 1.92 Miliar</p></div></div>
+                                <div class="w-px h-8 bg-purple-200"></div>
+                                <div class="flex items-center gap-3"><i class="fa-regular fa-clock text-red-500 text-lg"></i><div><p class="text-[10px] text-gray-500">Tingkat Stres</p><p class="text-sm font-bold text-red-500">Tinggi</p></div></div>
+                                <div class="w-px h-8 bg-purple-200"></div>
+                                <div class="flex items-center gap-3"><i class="fa-solid fa-scale-balanced text-yellow-500 text-lg"></i><div><p class="text-[10px] text-gray-500">Work-Life</p><p class="text-sm font-bold text-yellow-600">Sedang</p></div></div>
+                                <div class="w-px h-8 bg-purple-200"></div>
+                                <div class="flex items-center gap-3"><i class="fa-regular fa-circle-check text-green-500 text-lg"></i><div><p class="text-[10px] text-gray-500">Peluang Sukses</p><p class="text-sm font-bold text-gray-800">72%</p></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border border-green-200 bg-green-50/50 rounded-2xl p-6 flex gap-8 items-center">
+                        <div class="w-40 shrink-0 text-center px-4 py-6 border border-green-200 bg-white rounded-xl shadow-sm">
+                            <p class="text-xs font-bold text-green-800 mb-2">Scenario B</p>
+                            <h4 class="text-lg font-bold text-green-600 mb-3 leading-tight">Data Analyst</h4>
+                            <span class="text-[11px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">Work-Life Balance</span>
+                        </div>
+                        <div class="flex-1">
+                            <div class="relative pt-6 pb-4">
+                                <div class="absolute top-[40px] left-10 right-10 h-1.5 bg-green-200 rounded"></div>
+                                <div class="flex justify-between relative z-10 text-center">
+                                    <div class="relative"><div class="w-4 h-4 bg-green-500 rounded-full mx-auto border-2 border-white shadow-md mt-4"></div><div class="mt-3 text-xs leading-tight"><p class="font-bold text-gray-800">Data Analyst</p><p class="text-gray-500 mt-1">Rp 6 jt/bln</p></div></div>
+                                    <div class="relative"><div class="w-4 h-4 bg-green-500 rounded-full mx-auto border-2 border-white shadow-md mt-4"></div><div class="mt-3 text-xs leading-tight"><p class="font-bold text-gray-800">Data Analyst</p><p class="text-gray-500 mt-1">Rp 8 jt/bln</p></div></div>
+                                    <div class="relative"><div class="w-4 h-4 bg-green-500 rounded-full mx-auto border-2 border-white shadow-md mt-4"></div><div class="mt-3 text-xs leading-tight"><p class="font-bold text-gray-800">Sr. Analyst</p><p class="text-gray-500 mt-1">Rp 11 jt/bln</p></div></div>
+                                    <div class="relative"><div class="w-4 h-4 bg-green-500 rounded-full mx-auto border-2 border-white shadow-md mt-4"></div><div class="mt-3 text-xs leading-tight"><p class="font-bold text-gray-800">Data Scientist</p><p class="text-gray-500 mt-1">Rp 14 jt/bln</p></div></div>
+                                    <div class="relative"><div class="w-4 h-4 bg-green-500 rounded-full mx-auto border-2 border-white shadow-md mt-4"></div><div class="mt-3 text-xs leading-tight"><p class="font-bold text-gray-800">Manager</p><p class="text-gray-500 mt-1">Rp 22 jt/bln</p></div></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-around items-center border-t border-green-200 pt-4 mt-2">
+                                <div class="flex items-center gap-3"><i class="fa-solid fa-sack-dollar text-green-500 text-lg"></i><div><p class="text-[10px] text-gray-500">Potensi Gaji 5 Thn</p><p class="text-sm font-bold text-gray-800">Rp 968 Juta</p></div></div>
+                                <div class="w-px h-8 bg-green-200"></div>
+                                <div class="flex items-center gap-3"><i class="fa-regular fa-clock text-green-500 text-lg"></i><div><p class="text-[10px] text-gray-500">Tingkat Stres</p><p class="text-sm font-bold text-green-600">Rendah</p></div></div>
+                                <div class="w-px h-8 bg-green-200"></div>
+                                <div class="flex items-center gap-3"><i class="fa-solid fa-scale-balanced text-green-500 text-lg"></i><div><p class="text-[10px] text-gray-500">Work-Life</p><p class="text-sm font-bold text-green-600">Tinggi</p></div></div>
+                                <div class="w-px h-8 bg-green-200"></div>
+                                <div class="flex items-center gap-3"><i class="fa-regular fa-circle-check text-green-500 text-lg"></i><div><p class="text-[10px] text-gray-500">Peluang Sukses</p><p class="text-sm font-bold text-gray-800">85%</p></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-skill" class="tab-content hidden">
+            <div class="grid grid-cols-2 gap-8 max-w-6xl">
+                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col h-[500px]">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">Interactive Skill Graph</h3>
+                        <button class="text-blue-600 text-sm font-medium hover:underline bg-blue-50 px-3 py-1.5 rounded-lg">Expand Graph <i class="fa-solid fa-expand ml-1"></i></button>
+                    </div>
+                    
+                    <div class="flex-1 relative bg-slate-50 rounded-xl border border-gray-200 overflow-hidden">
+                        <svg class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: 0;">
+                            <line x1="50%" y1="50%" x2="25%" y2="25%" stroke="#cbd5e1" stroke-width="2" />
+                            <line x1="50%" y1="50%" x2="25%" y2="75%" stroke="#cbd5e1" stroke-width="2" />
+                            <line x1="50%" y1="50%" x2="65%" y2="20%" stroke="#38bdf8" stroke-width="2" stroke-dasharray="6" />
+                            <line x1="50%" y1="50%" x2="85%" y2="35%" stroke="#38bdf8" stroke-width="2" />
+                            <line x1="50%" y1="50%" x2="75%" y2="75%" stroke="#38bdf8" stroke-width="2" />
+                            <line x1="75%" y1="75%" x2="90%" y2="85%" stroke="#fbbf24" stroke-width="2" stroke-dasharray="6" />
+                        </svg>
+
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-xl border-4 border-white cursor-pointer hover:scale-110 transition-transform">Python</div>
+                        
+                        <div class="absolute top-[25%] left-[25%] -translate-x-1/2 -translate-y-1/2 z-10 w-16 h-16 bg-pink-500 rounded-full flex items-center justify-center text-white text-xs font-medium text-center leading-tight shadow-lg border-4 border-white cursor-pointer hover:scale-110 transition-transform">Deep<br>Learning</div>
+                        <div class="absolute top-[75%] left-[25%] -translate-x-1/2 -translate-y-1/2 z-10 w-16 h-16 bg-purple-400 rounded-full flex items-center justify-center text-white text-xs font-medium shadow-lg border-4 border-white cursor-pointer hover:scale-110 transition-transform">Statistics</div>
+
+                        <div class="absolute top-[20%] left-[65%] -translate-x-1/2 -translate-y-1/2 z-10 w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-medium text-center leading-tight shadow-lg border-4 border-white cursor-pointer hover:scale-110 transition-transform">Machine<br>Learning</div>
+                        <div class="absolute top-[35%] left-[85%] -translate-x-1/2 -translate-y-1/2 z-10 w-14 h-14 bg-teal-400 rounded-full flex items-center justify-center text-white text-[10px] font-medium shadow-lg border-4 border-white cursor-pointer hover:scale-110 transition-transform">AI</div>
+                        <div class="absolute top-[75%] left-[75%] -translate-x-1/2 -translate-y-1/2 z-10 w-16 h-16 bg-blue-400 rounded-full flex items-center justify-center text-white text-xs font-medium text-center leading-tight shadow-lg border-4 border-white cursor-pointer hover:scale-110 transition-transform">Data<br>Analysis</div>
+                        <div class="absolute top-[85%] left-[90%] -translate-x-1/2 -translate-y-1/2 z-10 w-12 h-12 bg-amber-400 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-lg border-4 border-white cursor-pointer hover:scale-110 transition-transform">SQL</div>
+                    </div>
+
+                    <div class="flex justify-center gap-6 mt-6 text-xs text-gray-600 font-medium">
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-purple-600 shadow-sm"></span> Core Skill</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500 shadow-sm"></span> Related Skill</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-teal-400 shadow-sm"></span> Future Skill</div>
+                        <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-400 shadow-sm"></span> Transferable</div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4">Skill Investment Score</h3>
+                        <div class="flex items-center gap-8">
+                            <div class="relative w-28 h-28 shrink-0">
+                                <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+                                    <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                    <path class="circle stroke-emerald-500" stroke-dasharray="87, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                </svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-800">
+                                    <span class="text-3xl font-bold leading-none">87</span>
+                                    <span class="text-xs text-gray-500">/100</span>
+                                </div>
+                            </div>
+                            <div class="flex-1 space-y-4">
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1.5"><span class="text-gray-600">ROI (Return on Investment)</span><span class="font-bold">90<span class="text-gray-400 font-normal">/100</span></span></div>
+                                    <div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-emerald-500 h-2 rounded-full" style="width: 90%"></div></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1.5"><span class="text-gray-600">Waktu untuk Kuasai</span><span class="font-bold">75<span class="text-gray-400 font-normal">/100</span></span></div>
+                                    <div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-emerald-500 h-2 rounded-full" style="width: 75%"></div></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1.5"><span class="text-gray-600">Permintaan Pasar</span><span class="font-bold">92<span class="text-gray-400 font-normal">/100</span></span></div>
+                                    <div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-emerald-500 h-2 rounded-full" style="width: 92%"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-whatif" class="tab-content hidden">
+            <div class="grid grid-cols-12 gap-8 max-w-6xl">
+                <div class="col-span-4 bg-white border border-gray-100 rounded-2xl p-6 shadow-sm h-fit">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">Simulasi Skenario</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-600 block mb-1">Posisi Saat Ini</label>
+                            <input type="text" value="Junior Developer" disabled class="w-full bg-gray-100 border border-gray-200 text-gray-500 text-sm py-2 px-3 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-600 block mb-1">Pilih Target Karier</label>
+                            <select class="w-full bg-white border border-gray-300 text-gray-700 text-sm py-2 px-3 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                <option>UI/UX Designer</option>
+                                <option>Product Manager</option>
+                                <option>Cloud Engineer</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-600 block mb-1">Target Waktu (Bulan)</label>
+                            <input type="range" min="3" max="24" value="6" class="w-full accent-blue-600">
+                            <div class="flex justify-between text-[10px] text-gray-500 mt-1"><span>3 Bln</span><span>24 Bln</span></div>
+                        </div>
+                        <button class="w-full mt-4 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition">Jalankan Kalkulasi AI</button>
+                    </div>
+                </div>
+
+                <div class="col-span-8 bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                    <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                        <div><p class="text-sm text-gray-500">Hasil Simulasi:</p><h3 class="text-2xl font-bold text-slate-800">Junior Dev <i class="fa-solid fa-arrow-right text-blue-500 mx-2"></i> UI/UX Designer</h3></div>
+                        <div class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">Match Score: 68%</div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-6 mb-8">
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 text-center">
+                            <i class="fa-solid fa-business-time text-blue-500 text-2xl mb-2"></i>
+                            <p class="text-xs text-gray-500">Estimasi Waktu</p>
+                            <p class="text-lg font-bold text-slate-800">6 - 8 Bulan</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 text-center">
+                            <i class="fa-solid fa-coins text-yellow-500 text-2xl mb-2"></i>
+                            <p class="text-xs text-gray-500">Perubahan Gaji</p>
+                            <p class="text-lg font-bold text-slate-800 text-green-600">+15% <span class="text-xs text-gray-400">rata-rata</span></p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 text-center">
+                            <i class="fa-solid fa-book-open text-purple-500 text-2xl mb-2"></i>
+                            <p class="text-xs text-gray-500">Effort Level</p>
+                            <p class="text-lg font-bold text-slate-800">Medium-High</p>
+                        </div>
+                    </div>
+
+                    <h4 class="font-bold text-sm text-slate-800 mb-3">Skill Gap Analysis (Yang harus dipelajari)</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-4 text-sm"><span class="w-32 font-medium text-gray-700">Figma / Prototyping</span><div class="flex-1 bg-gray-100 h-2 rounded-full"><div class="bg-red-400 h-2 rounded-full" style="width: 10%"></div></div><span class="w-12 text-right text-xs text-red-500">Beginner</span></div>
+                        <div class="flex items-center gap-4 text-sm"><span class="w-32 font-medium text-gray-700">User Research</span><div class="flex-1 bg-gray-100 h-2 rounded-full"><div class="bg-yellow-400 h-2 rounded-full" style="width: 30%"></div></div><span class="w-12 text-right text-xs text-yellow-600">Novice</span></div>
+                        <div class="flex items-center gap-4 text-sm"><span class="w-32 font-medium text-gray-700">HTML/CSS</span><div class="flex-1 bg-gray-100 h-2 rounded-full"><div class="bg-emerald-500 h-2 rounded-full" style="width: 80%"></div></div><span class="w-12 text-right text-xs text-emerald-600">Advanced</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-investment" class="tab-content hidden">
+            <div class="max-w-5xl">
+                <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm mb-6 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-800">Portfolio Keahlian Anda</h3>
+                        <p class="text-sm text-gray-500">Analisis pengembalian investasi (ROI) dari waktu belajar Anda berdasarkan tren pasar terkini.</p>
+                    </div>
+                    <div class="text-center bg-emerald-50 px-6 py-3 rounded-xl border border-emerald-100">
+                        <p class="text-xs text-emerald-600 font-bold mb-1">Overall Investment Score</p>
+                        <h2 class="text-3xl font-extrabold text-emerald-600">87<span class="text-sm font-normal text-emerald-400">/100</span></h2>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-6">
+                    <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm border-t-4 border-t-indigo-500">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="bg-indigo-100 text-indigo-600 p-2 rounded-lg"><i class="fa-brands fa-python text-xl"></i></div>
+                            <span class="bg-green-100 text-green-700 text-[10px] px-2 py-1 rounded-full font-bold">#1 High ROI</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-lg mb-1">Python</h4>
+                        <p class="text-xs text-gray-500 mb-4">Core Skill • Data Science</p>
+                        
+                        <div class="space-y-3">
+                            <div><div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Market Demand</span><span class="font-bold text-indigo-600">95%</span></div><div class="w-full bg-gray-100 h-1.5 rounded-full"><div class="bg-indigo-500 h-1.5 rounded-full" style="width: 95%"></div></div></div>
+                            <div><div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Salary Impact</span><span class="font-bold text-emerald-600">+25%</span></div><div class="w-full bg-gray-100 h-1.5 rounded-full"><div class="bg-emerald-500 h-1.5 rounded-full" style="width: 85%"></div></div></div>
+                            <div><div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Time to Master</span><span class="font-bold text-yellow-600">Sedang</span></div><div class="w-full bg-gray-100 h-1.5 rounded-full"><div class="bg-yellow-400 h-1.5 rounded-full" style="width: 60%"></div></div></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm border-t-4 border-t-blue-500">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="bg-blue-100 text-blue-600 p-2 rounded-lg"><i class="fa-solid fa-database text-xl"></i></div>
+                            <span class="bg-green-100 text-green-700 text-[10px] px-2 py-1 rounded-full font-bold">#2 High ROI</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-lg mb-1">SQL / Data Modeling</h4>
+                        <p class="text-xs text-gray-500 mb-4">Related Skill • Analytics</p>
+                        
+                        <div class="space-y-3">
+                            <div><div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Market Demand</span><span class="font-bold text-blue-600">88%</span></div><div class="w-full bg-gray-100 h-1.5 rounded-full"><div class="bg-blue-500 h-1.5 rounded-full" style="width: 88%"></div></div></div>
+                            <div><div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Salary Impact</span><span class="font-bold text-emerald-600">+15%</span></div><div class="w-full bg-gray-100 h-1.5 rounded-full"><div class="bg-emerald-500 h-1.5 rounded-full" style="width: 65%"></div></div></div>
+                            <div><div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Time to Master</span><span class="font-bold text-green-600">Cepat</span></div><div class="w-full bg-gray-100 h-1.5 rounded-full"><div class="bg-green-400 h-1.5 rounded-full" style="width: 30%"></div></div></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm border-t-4 border-t-red-400 opacity-80">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="bg-gray-100 text-gray-600 p-2 rounded-lg"><i class="fa-brands fa-php text-xl"></i></div>
+                            <span class="bg-red-100 text-red-700 text-[10px] px-2 py-1 rounded-full font-bold">Declining Trend</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-lg mb-1">Legacy PHP Frameworks</h4>
+                        <p class="text-xs text-gray-500 mb-4">Past Skill • Web Dev</p>
+                        
+                        <div class="space-y-3">
+                            <div><div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Market Demand</span><span class="font-bold text-red-500">30%</span></div><div class="w-full bg-gray-100 h-1.5 rounded-full"><div class="bg-red-400 h-1.5 rounded-full" style="width: 30%"></div></div></div>
+                            <div><div class="flex justify-between text-xs mb-1"><span class="text-gray-600">Salary Impact</span><span class="font-bold text-gray-500">Stagnan</span></div><div class="w-full bg-gray-100 h-1.5 rounded-full"><div class="bg-gray-300 h-1.5 rounded-full" style="width: 20%"></div></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-radar" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-6 max-w-5xl">
+                <div><h3 class="text-xl font-bold text-slate-800">Opportunity Radar</h3><p class="text-sm text-gray-500">Pemindaian pasar kerja real-time yang cocok dengan profilmu.</p></div>
+                <div class="bg-white border border-gray-200 rounded-lg p-1 flex text-sm"><button class="px-4 py-1.5 bg-blue-50 text-blue-600 font-bold rounded-md">Trending</button><button class="px-4 py-1.5 text-gray-500 hover:text-gray-800">Best Match</button></div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-6 max-w-5xl">
+                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition group cursor-pointer">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center text-indigo-600"><i class="fa-solid fa-robot"></i></div>
+                        <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full"><i class="fa-solid fa-fire"></i> +320% YoY</div>
+                    </div>
+                    <h4 class="font-bold text-slate-800 text-lg">AI Prompt Engineer</h4>
+                    <p class="text-xs text-gray-500 mb-4">Tech Industry • Remote</p>
+                    <div class="bg-gray-50 rounded-xl p-3 mb-4">
+                        <div class="flex justify-between text-xs mb-2"><span class="text-gray-500">Skill Match</span><span class="font-bold text-blue-600">75%</span></div>
+                        <div class="w-full bg-gray-200 h-1.5 rounded-full"><div class="bg-blue-500 h-1.5 rounded-full" style="width: 75%"></div></div>
+                    </div>
+                    <p class="text-sm font-bold text-slate-800 mb-4">Rp 15jt - 25jt <span class="text-xs font-normal text-gray-500">/bulan</span></p>
+                    <button class="w-full py-2 bg-white border border-gray-200 text-gray-700 font-bold text-sm rounded-xl group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-colors">Lihat Detail</button>
+                </div>
+
+                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition group cursor-pointer">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600"><i class="fa-solid fa-leaf"></i></div>
+                        <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full"><i class="fa-solid fa-fire"></i> +180% YoY</div>
+                    </div>
+                    <h4 class="font-bold text-slate-800 text-lg">Sustainability Analyst</h4>
+                    <p class="text-xs text-gray-500 mb-4">Corporate • Hybrid</p>
+                    <div class="bg-gray-50 rounded-xl p-3 mb-4">
+                        <div class="flex justify-between text-xs mb-2"><span class="text-gray-500">Skill Match</span><span class="font-bold text-blue-600">40% (Low)</span></div>
+                        <div class="w-full bg-gray-200 h-1.5 rounded-full"><div class="bg-red-400 h-1.5 rounded-full" style="width: 40%"></div></div>
+                    </div>
+                    <p class="text-sm font-bold text-slate-800 mb-4">Rp 12jt - 20jt <span class="text-xs font-normal text-gray-500">/bulan</span></p>
+                    <button class="w-full py-2 bg-white border border-gray-200 text-gray-700 font-bold text-sm rounded-xl group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-colors">Lihat Detail</button>
+                </div>
+                
+                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition group cursor-pointer">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600"><i class="fa-solid fa-database"></i></div>
+                        <div class="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full"><i class="fa-solid fa-fire"></i> +150% YoY</div>
+                    </div>
+                    <h4 class="font-bold text-slate-800 text-lg">Data Engineer</h4>
+                    <p class="text-xs text-gray-500 mb-4">Finance • On-site</p>
+                    <div class="bg-gray-50 rounded-xl p-3 mb-4">
+                        <div class="flex justify-between text-xs mb-2"><span class="text-gray-500">Skill Match</span><span class="font-bold text-blue-600">85% (High)</span></div>
+                        <div class="w-full bg-gray-200 h-1.5 rounded-full"><div class="bg-emerald-500 h-1.5 rounded-full" style="width: 85%"></div></div>
+                    </div>
+                    <p class="text-sm font-bold text-slate-800 mb-4">Rp 18jt - 30jt <span class="text-xs font-normal text-gray-500">/bulan</span></p>
+                    <button class="w-full py-2 bg-white border border-gray-200 text-gray-700 font-bold text-sm rounded-xl group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-colors">Lihat Detail</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-progress" class="tab-content hidden">
+            <div class="grid grid-cols-12 gap-8 max-w-5xl">
+                <div class="col-span-8 space-y-4">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Learning Path Kamu</h3>
+                    
+                    <div class="bg-white border border-blue-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
+                        <div class="flex gap-4">
+                            <div class="w-24 h-24 bg-blue-50 rounded-xl flex items-center justify-center shrink-0"><i class="fa-brands fa-python text-4xl text-blue-600"></i></div>
+                            <div class="flex-1 flex flex-col justify-between">
+                                <div>
+                                    <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded uppercase tracking-wider mb-1 inline-block">In Progress</span>
+                                    <h4 class="font-bold text-slate-800 text-lg">Advanced Python for Data Science</h4>
+                                    <p class="text-xs text-gray-500 mt-1">Module 4: Machine Learning Fundamentals</p>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1 font-bold"><span class="text-gray-700">60% Selesai</span><span class="text-gray-500">12/20 Modul</span></div>
+                                    <div class="w-full bg-gray-100 h-2 rounded-full"><div class="bg-blue-600 h-2 rounded-full" style="width: 60%"></div></div>
+                                </div>
+                            </div>
+                            <button class="self-end bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-700">Lanjutkan</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm opacity-80">
+                        <div class="flex gap-4 items-center">
+                            <div class="w-16 h-16 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0"><i class="fa-solid fa-database text-2xl text-emerald-600"></i></div>
+                            <div class="flex-1">
+                                <span class="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded uppercase tracking-wider mb-1 inline-block">Completed</span>
+                                <h4 class="font-bold text-slate-800">SQL Basics to Advanced</h4>
+                                <p class="text-xs text-gray-500">Diselesaikan pada 12 Apr 2026</p>
+                            </div>
+                            <button class="border border-gray-300 text-gray-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-50">Lihat Sertifikat</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-span-4 space-y-6 mt-9">
+                    <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm text-center">
+                        <i class="fa-solid fa-fire text-orange-500 text-3xl mb-2"></i>
+                        <h4 class="font-bold text-slate-800 text-lg">14 Hari Streak!</h4>
+                        <p class="text-xs text-gray-500">Pertahankan semangat belajarmu.</p>
+                    </div>
+
+                    <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                        <h4 class="font-bold text-slate-800 mb-3 text-sm">Pencapaian (Badges)</h4>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div class="flex flex-col items-center p-2 bg-amber-50 rounded-lg border border-amber-100" title="SQL Master"><i class="fa-solid fa-medal text-amber-500 text-2xl mb-1"></i><span class="text-[8px] font-bold text-gray-600">SQL Master</span></div>
+                            <div class="flex flex-col items-center p-2 bg-blue-50 rounded-lg border border-blue-100" title="Fast Learner"><i class="fa-solid fa-bolt text-blue-500 text-2xl mb-1"></i><span class="text-[8px] font-bold text-gray-600">Fast Learner</span></div>
+                            <div class="flex flex-col items-center p-2 bg-gray-50 rounded-lg border border-gray-200 opacity-50" title="Locked"><i class="fa-solid fa-lock text-gray-400 text-2xl mb-1"></i><span class="text-[8px] font-bold text-gray-500">Python Pro</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-mentor" class="tab-content hidden h-[75vh]">
+            <div class="bg-white border border-gray-100 rounded-2xl shadow-sm h-full max-w-4xl flex flex-col">
+                <div class="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white"><i class="fa-solid fa-robot"></i></div>
+                    <div><h3 class="font-bold text-slate-800">SkillSync AI Mentor</h3><p class="text-xs text-green-500 flex items-center gap-1"><span class="w-2 h-2 bg-green-500 rounded-full"></span> Online</p></div>
+                </div>
+
+                <div class="flex-1 p-6 overflow-y-auto space-y-6 bg-slate-50 custom-scroll">
+                    <div class="flex gap-4 max-w-[80%]">
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white shrink-0 text-xs"><i class="fa-solid fa-robot"></i></div>
+                        <div class="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 text-sm text-gray-700 leading-relaxed">
+                            <p>Halo Atta! 👋 Saya lihat skor Career Fit Anda untuk <strong>AI Engineer</strong> sangat tinggi (85%).</p>
+                            <p class="mt-2">Apakah ada topik spesifik yang ingin Anda diskusikan hari ini? Misalnya, persiapan wawancara atau materi kursus Python Anda yang sedang berjalan?</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 max-w-[80%] ml-auto flex-row-reverse">
+                        <img src="https://i.pravatar.cc/150?img=5" class="w-8 h-8 rounded-full border border-gray-200 shrink-0">
+                        <div class="bg-blue-600 p-4 rounded-2xl rounded-tr-none shadow-sm text-sm text-white leading-relaxed">
+                            <p>Saya butuh tips untuk membuat portofolio Data Analysis menggunakan SQL. Proyek apa yang bagus untuk pemula?</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-4 max-w-[80%]">
+                        <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white shrink-0 text-xs"><i class="fa-solid fa-robot"></i></div>
+                        <div class="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-gray-100 text-sm text-gray-700">
+                            <p class="font-medium mb-2">Tentu! Berikut 3 ide proyek portofolio SQL yang menarik bagi rekruter:</p>
+                            <ul class="list-disc pl-5 space-y-1">
+                                <li><strong>Analisis Penjualan E-commerce:</strong> Gunakan dataset publik (misal Kaggle) untuk mencari tren penjualan bulanan dan produk terlaris.</li>
+                                <li><strong>Customer Churn Analysis:</strong> Buat query untuk mengidentifikasi pola pelanggan yang berhenti berlangganan.</li>
+                                <li><strong>HR Dashboard Data:</strong> Analisis demografi karyawan dan tingkat *turnover*.</li>
+                            </ul>
+                            <p class="mt-2 text-xs text-blue-600 cursor-pointer font-bold hover:underline">Tampilkan contoh Query SQL untuk ide No 1.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-white border-t border-gray-100">
+                    <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full p-1 pl-4">
+                        <input type="text" placeholder="Tanya AI Mentor tentang karier, skill, atau review CV..." class="flex-1 bg-transparent border-none focus:outline-none text-sm text-gray-700">
+                        <button class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 transition shrink-0"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-settings" class="tab-content hidden">
+            <div class="flex gap-8 max-w-5xl">
+                <div class="w-64 shrink-0">
+                    <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden text-sm">
+                        <a href="#" class="block px-5 py-3 border-l-4 border-blue-600 bg-blue-50 font-bold text-blue-700">Profil Saya</a>
+                        <a href="#" class="block px-5 py-3 border-l-4 border-transparent text-gray-600 hover:bg-gray-50">Keamanan & Password</a>
+                        <a href="#" class="block px-5 py-3 border-l-4 border-transparent text-gray-600 hover:bg-gray-50">Notifikasi</a>
+                        <a href="#" class="block px-5 py-3 border-l-4 border-transparent text-gray-600 hover:bg-gray-50">Paket & Langganan</a>
+                        <a href="#" class="block px-5 py-3 border-l-4 border-transparent text-gray-600 hover:bg-gray-50">Integrasi Aplikasi</a>
+                    </div>
+                </div>
+
+                <div class="flex-1 bg-white border border-gray-100 rounded-2xl p-8 shadow-sm">
+                    <h3 class="text-xl font-bold text-slate-800 mb-6 border-b border-gray-100 pb-4">Pengaturan Profil</h3>
+                    
+                    <div class="flex items-center gap-6 mb-8">
+                        <div class="relative">
+                            <img src="https://i.pravatar.cc/150?img=5" alt="Profile" class="w-24 h-24 rounded-full border-4 border-gray-50">
+                            <button class="absolute bottom-0 right-0 w-8 h-8 bg-white border border-gray-200 rounded-full shadow flex items-center justify-center text-gray-600 hover:text-blue-600"><i class="fa-solid fa-camera text-xs"></i></button>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-lg text-slate-800">Atta Choirunnizam</h4>
+                            <p class="text-sm text-gray-500 mb-2">Atta.ganteng@gmail.com</p>
+                            <span class="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-bold border border-yellow-200"><i class="fa-solid fa-crown mr-1"></i> Premium Member</span>
+                        </div>
+                    </div>
+
+                    <form class="space-y-5 max-w-lg">
+                        <div class="grid grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Nama Depan</label>
+                                <input type="text" value="Alya" class="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm py-2.5 px-3 rounded-lg focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 mb-1">Nama Belakang</label>
+                                <input type="text" value="Putri" class="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm py-2.5 px-3 rounded-lg focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Posisi Saat Ini</label>
+                            <input type="text" value="Junior Web Developer" class="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm py-2.5 px-3 rounded-lg focus:border-blue-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Bio / Tujuan Karier</label>
+                            <textarea rows="3" class="w-full bg-gray-50 border border-gray-200 text-gray-800 text-sm py-2.5 px-3 rounded-lg focus:border-blue-500 focus:outline-none">Bersemangat untuk beralih ke bidang AI dan Machine Learning dalam 2 tahun ke depan.</textarea>
+                        </div>
+                        <div class="pt-4">
+                            <button type="button" class="bg-blue-600 text-white font-bold py-2.5 px-6 rounded-xl hover:bg-blue-700 transition">Simpan Perubahan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        function switchTab(tabName) {
+            // 1. Menyembunyikan semua tab content
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('block');
+                tab.classList.add('hidden');
+            });
+
+            // 2. Menampilkan tab content yang dipanggil
+            const targetTab = document.getElementById('tab-' + tabName);
+            if(targetTab) {
+                targetTab.classList.remove('hidden');
+                targetTab.classList.add('block');
+            }
+
+            // 3. Mereset warna link navigasi di sidebar ke abu-abu
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('bg-blue-600', 'text-white');
+                item.classList.add('text-gray-400', 'hover:bg-slate-800', 'hover:text-white');
+            });
+
+            // 4. Memberikan warna biru (aktif) ke menu sidebar yang sedang dipilih
+            const activeNav = document.getElementById('nav-' + tabName);
+            if(activeNav) {
+                activeNav.classList.remove('text-gray-400', 'hover:bg-slate-800', 'hover:text-white');
+                activeNav.classList.add('bg-blue-600', 'text-white');
+            }
+
+            // 5. Mengubah judul Halaman Dinamis di Header atas
+            const titleEl = document.getElementById('page-title');
+            const subtitleEl = document.getElementById('page-subtitle');
+            
+            const contentMap = {
+                'dashboard': { t: 'Hi, Atta! 👋', s: '"Rencanakan hari ini, simulasi masa depanmu..."' },
+                'career': { t: 'Career Simulation 🧭', s: 'Jelajahi berbagai jalur karier berdasarkan kemampuanmu.' },
+                'skill': { t: 'Skill Graph 🧬', s: 'Peta jaringan interaktif antar keahlian teknis.' },
+                'whatif': { t: 'What If Engine 🔀', s: 'Simulasikan berbagai keputusan karier seketika.' },
+                'investment': { t: 'Skill Investment Score 📈', s: 'Hitung pengembalian investasi waktu belajarmu.' },
+                'radar': { t: 'Opportunity Radar 📡', s: 'Peluang dan tren pasar yang cocok untukmu.' },
+                'progress': { t: 'Progress & Learning 📚', s: 'Pantau materi pembelajaran yang sedang berjalan.' },
+                'mentor': { t: 'AI Mentor 🤖', s: 'Asisten AI siap menjawab semua pertanyaan kariermu.' },
+                'settings': { t: 'Pengaturan Akun ⚙️', s: 'Sesuaikan profil dan preferensi keamanananmu.' }
+            };
+
+            if(contentMap[tabName]) {
+                titleEl.innerHTML = contentMap[tabName].t;
+                subtitleEl.innerHTML = contentMap[tabName].s;
+            }
+        }
+
+        // Tampilkan dashboard saat pertama kali dibuka
+        window.onload = () => switchTab('dashboard');
+    </script>
+</body>
+</html>
